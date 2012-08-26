@@ -49,7 +49,11 @@ object LXC {
 
 	def allAsMap(): Map[String, Seq[String]] = {
 		val lines = "lxc-list".!!.split('\n').toList
-		val running = lines.slice(lines.indexWhere(_ == "RUNNING")+1, lines.indexWhere(_ == "STOPPED"))
+		val running = lines.slice(lines.indexWhere(_ == "RUNNING")+1, lines.indexWhere(_ == "FROZEN"))
+							.filter(_.nonEmpty)
+							.map(_.trim)
+
+		val frozen = lines.slice(lines.indexWhere(_ == "FROZEN")+1, lines.indexWhere(_ == "STOPPED"))
 							.filter(_.nonEmpty)
 							.map(_.trim)
 
@@ -57,7 +61,7 @@ object LXC {
 							.filter(_.nonEmpty)
 							.map(_.trim)
 
-		Map("running" -> running, "stopped" -> stopped)
+		Map("running" -> running, "frozen" -> frozen, "stopped" -> stopped)
 	}
 
 	def start(name: String, configFile: String=null): Int = {
@@ -116,6 +120,9 @@ object LXC {
 
 	lazy val stopped: Seq[String] =
 		allAsMap()("stopped")
+
+	lazy val frozen: Seq[String] =
+		allAsMap()("frozen")
 
 	lazy val running: Seq[String] =
 		allAsMap()("running")
